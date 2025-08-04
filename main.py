@@ -1,38 +1,57 @@
 import os
-from allure_loader.loader import extract_allure_archive
-from allure_loader.case_parser import load_allure_result_cases
-from allure_loader.parser import find_and_load_csv
-from excel_report import export_failures_to_excel
 
+# --- 1. Поиск нужного файла отчета в папках проекта ---
+def find_report(filename, search_dirs=["reports", "."]):
+    """
+    Ищет указанный файл (например, 'allure_test_results_enhanced.csv' или 'allure-report.zip')
+    сначала в папке reports/, потом в корне проекта.
+    Возвращает полный путь, если файл найден, иначе None.
+    """
+    for folder in search_dirs:
+        candidate = os.path.join(folder, filename)
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+# --- 2. Обработка "золотого" отчета (CSV) ---
+def analyze_golden_report(csv_path):
+    """
+    Импортирует и запускает функцию анализа для "золотого" CSV-отчета.
+    Функция main() берется из твоего golden_report_analysis.py (или аналога).
+    """
+    from allure_loader.golden_report_analysis import main as golden_main
+    print(f"\n[INFO] Найден 'золотой' отчет: {csv_path}")
+    golden_main(csv_path)
+
+# --- 3. Обработка стандартного отчета (zip) ---
+def analyze_allure_zip(zip_path):
+    """
+    Импортирует и запускает функцию анализа для архива allure-report.zip.
+    Функция main() берется из твоего модуля allure_loader.main_analysis.py (или аналога).
+    """
+    from allure_loader.loader import extract_allure_archive as allure_main
+    print(f"\n[INFO] Используем стандартный архивный анализ: {zip_path}")
+    allure_main(zip_path)
+
+# --- 4. Точка входа: выбирает анализ в зависимости от найденного файла ---
 def main():
-    # Путь к архиву
-    zip_path = os.path.join('reports', 'Allure_20Report.zip')
-    folder = extract_allure_archive(zip_path)
-    print(f"Архив распакован: {folder}")
+    # Сначала ищем "золотой" CSV-отчет
+    golden_csv = find_report("allure_test_results_enhanced.csv")
+    golden_xlsx = find_report("allure_test_results_enhanced.xlsx")
+    if golden_csv or golden_xlsx:
+        analyze_golden_report(golden_csv or golden_xlsx)
+        return
 
-    # ищем директорию Allure_20Report внутри архива
-    for item in os.listdir(folder):
-        path = os.path.join(folder, item)
-        if os.path.isdir(path) and 'allure' in item.lower():
-            allure_folder = path
-            break
+    # Если не найден — ищем zip-отчет Allure
+    allure_zip = find_report("allure-report.zip")
+    if allure_zip:
+        analyze_allure_zip(allure_zip)
+        return
 
-    df_cases = load_allure_result_cases(allure_folder)
-    print(f"Всего тестов: {len(df_cases)}")
-    print(df_cases.head())
-    print("\nСтатистика по статусам:")
-    print(df_cases['status'].value_counts())
+    # Если не найден ни один файл — сообщаем об ошибке
+    print("\n[ERROR] Не найден ни 'золотой' CSV-отчет, ни архив allure-report.zip.\n"
+          "Положите нужный файл в корень проекта или в папку reports/!")
 
-    #Формирование Excel отчета
-    export_failures_to_excel(df_cases, filename='my_report.xlsx')
-
-    # Пример: читаем suites.csv (если нужен быстрый срез)
-    try:
-        df = find_and_load_csv(folder, "suites.csv")
-        print(f"\nСтрок в suites.csv: {len(df)}")
-        print(df.head())
-    except FileNotFoundError:
-        print("Файл suites.csv не найден, работаем только с JSON.")
-
+# --- 5. Запуск по cli ---
 if __name__ == "__main__":
     main()
