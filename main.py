@@ -19,7 +19,7 @@ def analyze_golden_report(csv_path):
     Импортирует и запускает функцию анализа для "золотого" CSV-отчета.
     Функция main() берется из твоего golden_report_analysis.py (или аналога).
     """
-    from allure_loader.golden_report_analysis import main as golden_main
+    from csv_xlsx_analysis.golden_report_analysis import main as golden_main
     print(f"\n[INFO] Найден 'золотой' отчет: {csv_path}")
     golden_main(csv_path)
 
@@ -27,9 +27,9 @@ def analyze_golden_report(csv_path):
 def analyze_allure_zip(zip_path):
     """
     Импортирует и запускает функцию анализа для архива allure-report.zip.
-    Функция main() берется из твоего модуля allure_loader.main_analysis.py (или аналога).
+    Функция main() берется из твоего модуля zip_analysis.main_analysis.py (или аналога).
     """
-    from allure_loader.loader import extract_allure_archive as allure_main
+    from zip_analysis.loader import extract_allure_archive as allure_main
     print(f"\n[INFO] Используем стандартный архивный анализ: {zip_path}")
     allure_main(zip_path)
 

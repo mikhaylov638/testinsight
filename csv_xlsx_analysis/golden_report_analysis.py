@@ -90,7 +90,7 @@ def main(excel_path=None):
         slowest = pd.DataFrame()
 
     # --- Сохраняем в централизованный каталог ---
-    out_dir = os.path.join(os.getcwd(), "C:/Projects/testinsight_reports")
+    out_dir = os.path.join(os.getcwd(), "../testinsight_reports")
     os.makedirs(out_dir, exist_ok=True)
     out_name = os.path.join(out_dir, "golden_report_analysis.xlsx")
 
